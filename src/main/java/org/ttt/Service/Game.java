@@ -1,8 +1,6 @@
 package org.ttt.Service;
 
-import org.ttt.Model.Board;
-import org.ttt.Model.Move;
-import org.ttt.Model.Player;
+import org.ttt.Model.*;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -10,31 +8,40 @@ import java.util.Arrays;
 import java.util.List;
 
 public class Game {
-    private Board board;
-    private List<Player> players;
+    private final Board board;
+    private final List<Player> players;
     private int playerIndex;
+    private GameStatus status;
+    private Player winner;
 
-    public Game(Board board, Player player1, Player player2) {
-        this.board = board;
+    public Game(int size, Player player1, Player player2) {
+        this.board = new Board(size);
         this.players = new ArrayList<>(Arrays.asList(player1, player2));
+        this.status = GameStatus.IN_PROGRESS;
+        this.winner = null;
     }
 
-    public void makeMove(int x, int y) {
+    public void makeMove(int row, int col) {
+        if (status != GameStatus.IN_PROGRESS) return;
+
         Player player = players.get(playerIndex);
-        if(board.isEmpty(x, y)){
-            board.placeMove(x,y,player.getSymbol());
-            System.out.println("Player moved!");
-            checkWinner();
-            switchPlayer();
+        boolean isPlaced=board.placeMove(row,col,player.getSymbol());
+        if (!isPlaced){
+            System.out.println("Illegal move! cannot place");
+            return;
         }
-        else{
-            System.out.println("Illegal move");
+
+        if (board.hasWinner(row, col)) {
+            status = GameStatus.WON;
+            winner = player;
+            return;
         }
-    }
 
-    public void checkWinner() {
-//        algo to check winner
-
+        if(board.isFull()){
+            status = GameStatus.DRAW;
+            return;
+        }
+        switchPlayer();
     }
 
     public void switchPlayer() {
